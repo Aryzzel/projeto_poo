@@ -6,29 +6,16 @@ def iniciar_figura_nova(event):
     global figura_nova
     if tipo_figura_var.get() == 'Linha':
         figura_nova = ("linha", (event.x, event.y, event.x, event.y))
-    elif tipo_figura_var.get() == 'Rabisco':
+    else :
         figura_nova = ("rabisco", [(event.x, event.y)])
-    elif tipo_figura_var.get() == 'Círculo':
-        figura_nova = ("circulo", (event.x, event.y, event.x))
-    elif tipo_figura_var.get() == 'Oval':
-        figura_nova = ("oval", (event.x, event.y, event.x, event.y))
-    elif tipo_figura_var.get() == 'Retângulo':
-        figura_nova = ("retangulo", (event.x, event.y, event.x, event.y))
-    
 
 # Quando mouse é movido com o botão pressionado
 def atualizar_figura_nova(event):
     global figura_nova
     if figura_nova[0] == "rabisco":
         figura_nova[1].append((event.x, event.y))
-    elif figura_nova[0] == "linha":
+    else : # figura_nova[0] == "linha"
         figura_nova = ("linha", (figura_nova[1][0], figura_nova[1][1], event.x, event.y))
-    elif figura_nova[0] == "circulo":
-        figura_nova = ("circulo", (figura_nova[1][0], figura_nova[1][1], abs(figura_nova[1][0]+figura_nova[1][1] - (event.x+event.y))))
-    elif figura_nova[0] == "oval":
-        figura_nova = ("oval", (figura_nova[1][0], figura_nova[1][1], abs(figura_nova[1][0] - event.x), abs(figura_nova[1][1]- event.y)))
-    elif figura_nova[0] == "retangulo":
-        figura_nova = ("retangulo", (figura_nova[1][0], figura_nova[1][1], event.x, event.y))
     desenhar_figuras()
     desenhar_figura_nova()
 
@@ -43,37 +30,22 @@ def desenhar_figuras():
     for fig, values in figuras:
         if fig == "linha":
             canvas.create_line(values[0], values[1], values[2], values[3])
-        elif fig == "rabisco":
+        else : # fig == "rabisco"
             canvas.create_line(values)
-        elif fig == "circulo":
-            canvas.create_oval(values[0]-values[2], values[1]-values[2], values[0]+values[2],values[1]+values[2])
-        elif fig == "oval":
-            canvas.create_oval(values[0]-values[2], values[1]-values[3], values[0]+values[2], values[1]+values[3])
-        elif fig == "retangulo":
-            canvas.create_rectangle(values[0], values[1], values[2], values[3])
 
 def desenhar_figura_nova():
     fig, values = figura_nova
     if fig == "linha":
         canvas.create_line(values[0], values[1], values[2], values[3], dash=(4, 2))
-    elif fig == "rabisco":
+    else : # fig == "rabisco"
         canvas.create_line(values, dash=(4, 2))
-    elif fig == "circulo":
-        canvas.create_oval(values[0]-values[2], values[1]-values[2], values[0]+values[2],values[1]+values[2], dash=(4,2))
-    elif fig == "oval":
-        canvas.create_oval(values[0]-values[2], values[1]-values[3], values[0]+values[2], values[1]+values[3], dash=(4,2))
-    elif fig == "retangulo":
-        canvas.create_rectangle(values[0], values[1], values[2], values[3], dash=(4,2))
+
 def incompleta(figura):
     fig, values = figura
     if fig == "linha":
         return (values[0], values[1]) == (values[2], values[3])
-    elif fig == "rabisco":
+    else : # fig == "rabisco"
         return len(values) <= 1
-    elif fig == "circulo" or fig == "oval":
-        return (values[0] == values[2])
-    elif fig == "retangulo":
-        return (values[0], values[1]) == (values[2], values[3])
 
 
 
@@ -96,7 +68,7 @@ label.grid(column=0, row=0, sticky=W, **paddings)
 # option menu
 tipo_figura_var = StringVar(root) # Guarda o tipo de figura selecionado no option menu (linha ou rabisco)
 option_menu = ttk.OptionMenu(frame, tipo_figura_var,
-                             'Linha', 'Linha', 'Rabisco', 'Círculo', 'Oval', 'Retângulo')
+                             'Linha', 'Linha', 'Rabisco')
 option_menu.grid(column=1, row=0, sticky=W, **paddings)
 
 # Área de desenho
