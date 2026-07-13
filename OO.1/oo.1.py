@@ -1,70 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import colorchooser  # pra abrir aquela paleta de cores nativa do tkinter
-from abc import ABC, abstractmethod
-from math import dist
-
-
-class Figura(ABC):
-    def __init__(self, coordenadas, corBorda, corFill=""):
-        self.coordenadas = coordenadas
-        self.corBorda = corBorda
-        self.corFill = corFill
-
-    @abstractmethod
-    def desenhar(self, canvas, tracejado=None):
-        pass
-
-    @abstractmethod
-    def incompleta(self):
-        pass
-
-
-class Linha(Figura):
-    def alterarPontosFinais(self, x, y):
-        self.coordenadas[2], self.coordenadas[3] = x, y
-
-    def desenhar(self, canvas, tracejado=None):
-        x1, y1, x2, y2 = self.coordenadas
-        canvas.create_line(x1, y1, x2, y2, fill=self.corBorda, dash=tracejado)
-
-    def incompleta(self):
-        return (self.coordenadas[0] == self.coordenadas[2]) and (self.coordenadas[1] == self.coordenadas[3])
-
-
-class Rabisco(Figura):
-    def __init__(self, pontos, corBorda, corFill=""):
-        super().__init__(pontos, corBorda, corFill)
-        self.pontos = self.coordenadas
-
-    def desenhar(self, canvas, tracejado=None):
-        if len(self.pontos) > 1:
-            canvas.create_line(self.pontos, fill=self.corBorda, dash=tracejado)
-
-    def adicionarPonto(self, novoPonto):
-        self.pontos.append(novoPonto)
-
-    def incompleta(self):
-        return len(self.pontos) <= 1
-
-
-class Circulo(Linha):
-    def desenhar(self, canvas, tracejado=None):
-        x1, y1, x2, y2 = self.coordenadas
-        raio = dist((x1, y1), (x2, y2))
-        canvas.create_oval(x1-raio, y1-raio, x1+raio, y1+raio, outline=self.corBorda, fill=self.corFill, dash=tracejado)
-
-
-class Oval(Linha):
-    def desenhar(self, canvas, tracejado=None):
-        x1, y1, x2, y2 = self.coordenadas
-        canvas.create_oval(x1, y1, x2, y2, outline=self.corBorda, fill=self.corFill, dash=tracejado)
-
-
-class Retangulo(Linha):
-    def desenhar(self, canvas, tracejado=None):
-        x1, y1, x2, y2 = self.coordenadas
-        canvas.create_rectangle(x1, y1, x2, y2, outline=self.corBorda, fill=self.corFill, dash=tracejado)
+from figuras import Linha, Rabisco, Circulo, Oval, Retangulo, Poligono
 
 
 class AplicacaoDesenho:
@@ -79,6 +16,17 @@ class AplicacaoDesenho:
         cor = self.cor_borda_atual.get()  # pega a cor que tá selecionada no momento do clique
         cor_p = self.cor_preenchimento_atual.get()
 
+        # polígono é diferente das outras: não é clique-arrasta-solta, é clique-clique-clique...
+        # até fechar com duplo-clique. Por isso trata ele separado antes de tudo.
+        if self.tipo_figura_var.get() == 'Polígono':
+            if isinstance(self.figura_nova, Poligono):
+                self.figura_nova.adicionarPonto((event.x, event.y))
+            else:
+                self.figura_nova = Poligono([(event.x, event.y)], cor, cor_p)
+            self.desenhar_figuras()
+            self.desenhar_figura_nova()
+            return
+
         if self.tipo_figura_var.get() == 'Linha':
             self.figura_nova = Linha([event.x, event.y, event.x, event.y], cor, cor_p)
         elif self.tipo_figura_var.get() == 'Rabisco':
@@ -92,7 +40,8 @@ class AplicacaoDesenho:
 
     # Quando mouse é movido com o botão pressionado
     def atualizar_figura_nova(self, event):
-        if self.figura_nova is None:
+        # polígono não usa arrastar, cada ponto dele só é fixado no clique (iniciar_figura_nova)
+        if self.figura_nova is None or isinstance(self.figura_nova, Poligono):
             return
 
         if isinstance(self.figura_nova, Rabisco):
@@ -104,11 +53,22 @@ class AplicacaoDesenho:
 
     # Quando mouse é solto
     def incluir_figura_nova(self, event):
+        # polígono só é finalizado no duplo-clique (finalizar_poligono), soltar o mouse aqui não faz nada
+        if isinstance(self.figura_nova, Poligono):
+            return
+
         # cor não é usada aqui, só serve pra desempacotar certo
         if self.figura_nova is not None and not self.figura_nova.incompleta():  # para evitar incluir figuras incompletas, como uma linha sem comprimento ou um rabisco com um único ponto
             self.figuras.append(self.figura_nova)
         self.figura_nova = None
         self.desenhar_figuras()
+
+    # Quando dá duplo-clique - só faz sentido pro polígono, é o jeito de "fechar" a forma
+    def finalizar_poligono(self, event):
+        if isinstance(self.figura_nova, Poligono) and not self.figura_nova.incompleta():
+            self.figuras.append(self.figura_nova)
+            self.figura_nova = None
+            self.desenhar_figuras()
 
     def desenhar_figuras(self):
         self.canvas.delete("all")
@@ -151,9 +111,9 @@ class AplicacaoDesenho:
         label.grid(column=0, row=0, sticky=W, **paddings)
 
         # option menu
-        self.tipo_figura_var = StringVar(self.root)  # Guarda o tipo de figura selecionado no option menu (linha ou rabisco)
+        self.tipo_figura_var = StringVar(self.root)  # Guarda o tipo de figura selecionado no option menu
         option_menu = ttk.OptionMenu(self.frame, self.tipo_figura_var,
-                                     'Linha', 'Linha', 'Rabisco', 'Círculo', 'Oval', 'Retângulo')
+                                     'Linha', 'Linha', 'Rabisco', 'Círculo', 'Oval', 'Retângulo', 'Polígono')
         option_menu.grid(column=1, row=0, sticky=W, **paddings)
 
         # bordas com cor
@@ -181,6 +141,7 @@ class AplicacaoDesenho:
         self.canvas.bind('<ButtonPress-1>', self.iniciar_figura_nova)
         self.canvas.bind('<B1-Motion>', self.atualizar_figura_nova)
         self.canvas.bind('<ButtonRelease-1>', self.incluir_figura_nova)
+        self.canvas.bind('<Double-Button-1>', self.finalizar_poligono)  # duplo-clique fecha o polígono
 
 
 # ******* MAIN *******#
