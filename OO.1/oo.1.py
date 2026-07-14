@@ -22,9 +22,10 @@ class AplicacaoDesenho:
             if isinstance(self.figura_nova, Poligono):
                 self.figura_nova.adicionarPonto((event.x, event.y))
             else:
-                self.figura_nova = Poligono([(event.x, event.y)], cor, cor_p)
+                self.figura_nova = Poligono([(event.x, event.y), (event.x, event.y)],[(event.x, event.y)], cor, corFill=cor_p)
+            self.figura_nova.coordenadas[0] = (event.x, event.y)
             self.desenhar_figuras()
-            self.desenhar_figura_nova()
+            self.figura_nova.desenhar(self.canvas, (4,2))
             return
 
         if self.tipo_figura_var.get() == 'Linha':
@@ -40,8 +41,7 @@ class AplicacaoDesenho:
 
     # Quando mouse é movido com o botão pressionado
     def atualizar_figura_nova(self, event):
-        # polígono não usa arrastar, cada ponto dele só é fixado no clique (iniciar_figura_nova)
-        if self.figura_nova is None or isinstance(self.figura_nova, Poligono):
+        if self.figura_nova is None:
             return
 
         if isinstance(self.figura_nova, Rabisco):
@@ -49,7 +49,7 @@ class AplicacaoDesenho:
         else:
             self.figura_nova.alterarPontosFinais(event.x, event.y)
         self.desenhar_figuras()
-        self.desenhar_figura_nova()
+        self.figura_nova.desenhar(self.canvas, tracejado=(4,2))
 
     # Quando mouse é solto
     def incluir_figura_nova(self, event):
@@ -66,19 +66,26 @@ class AplicacaoDesenho:
     # Quando dá duplo-clique - só faz sentido pro polígono, é o jeito de "fechar" a forma
     def finalizar_poligono(self, event):
         if isinstance(self.figura_nova, Poligono) and not self.figura_nova.incompleta():
+            self.figura_nova.completo = True
             self.figuras.append(self.figura_nova)
             self.figura_nova = None
             self.desenhar_figuras()
+        else:
+            # se tiver incompleto e você tnetar fechar vai apagar a linha que você construiu do polígono
+            self.figura_nova = None
+
+    def atualizar_poligono(self, event):
+        # serve pra fazer a linha na hora que tá desenhando o polígono acompanhar seu mouse
+        if isinstance(self.figura_nova, Poligono):
+            self.atualizar_figura_nova(event)
+        else:
+            return
 
     def desenhar_figuras(self):
         self.canvas.delete("all")
         # cada figura agora vem com uma cor junto, por isso o for desempacota 3 valores e não mais 2
         for figura in self.figuras:
-            figura.desenhar(self.canvas)
-
-    def desenhar_figura_nova(self):
-        if self.figura_nova is not None:
-            self.figura_nova.desenhar(self.canvas, tracejado=(4, 2))
+            figura.desenhar(self.canvas)   
 
     # abre o seletor de cor e atualiza tanto a variável quanto a cor de fundo do botão, pra dar um feedback visual de qual cor tá selecionada
     def escolher_cor_borda(self):
@@ -89,8 +96,9 @@ class AplicacaoDesenho:
             self.botao_cor_borda.config(bg=cor[1])
 
     def escolher_cor_preenchimento(self):
-        cor_inicial = self.cor_preenchimento_atual.get()
         cor_inicial = "#8c8488"
+        if self.cor_preenchimento_atual.get():
+            cor_inicial = self.cor_preenchimento_atual.get()
         cor = colorchooser.askcolor(title="Escolha a cor de preenchimento", initialcolor=cor_inicial)
         if cor[1] is not None:
             self.cor_preenchimento_atual.set(cor[1])
@@ -107,7 +115,7 @@ class AplicacaoDesenho:
         paddings = {'padx': 5, 'pady': 5}
 
         # label
-        label = ttk.Label(self.frame, text='Linha ou Rabisco:')
+        label = ttk.Label(self.frame, text='Peinte')
         label.grid(column=0, row=0, sticky=W, **paddings)
 
         # option menu
@@ -139,6 +147,7 @@ class AplicacaoDesenho:
 
         # Eventos de mouse associados ao canvas - com seus callbacks
         self.canvas.bind('<ButtonPress-1>', self.iniciar_figura_nova)
+        self.canvas.bind('<Motion>', self.atualizar_poligono)
         self.canvas.bind('<B1-Motion>', self.atualizar_figura_nova)
         self.canvas.bind('<ButtonRelease-1>', self.incluir_figura_nova)
         self.canvas.bind('<Double-Button-1>', self.finalizar_poligono)  # duplo-clique fecha o polígono
