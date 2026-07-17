@@ -99,11 +99,12 @@ class FerramentaPoligono(FerramentaDesenho):
         self.model.figura_nova = Poligono(self.coordenadas, self.pontos, self.corBorda, corFill=self.corFill)
 
     def mouse_pressionado(self, event, corBorda, corFill):
-        self.model.figura_nova.alterarPontosFinais(event.x, event.y)
-        self.model.figura_nova.alterarPontosIniciais(event.x, event.y)
-        self.model.figura_nova.adicionarPonto((event.x, event.y))
-        self.model.desenhar(self.view.canvas)
-        self.model.figura_nova.desenhar(self.view.canvas, tracejado=(4,2))
+        if self.model.figura_nova.coordenadas[0] != (event.x, event.y):
+            self.model.figura_nova.alterarPontosFinais(event.x, event.y)
+            self.model.figura_nova.alterarPontosIniciais(event.x, event.y)
+            self.model.figura_nova.adicionarPonto((event.x, event.y))
+            self.model.desenhar(self.view.canvas)
+            self.model.figura_nova.desenhar(self.view.canvas, tracejado=(4,2))
 
 
     def arraste(self, event):
@@ -118,6 +119,9 @@ class FerramentaPoligono(FerramentaDesenho):
             self.model.desenhar(self.view.canvas)
             self.model.figura_nova.desenhar(self.view.canvas)
             self.model.figura_nova = None
+        else:
+            self.model.figura_nova = None
+            self.model.desenhar(self.view.canvas)
 
     def solto(self):
         pass
