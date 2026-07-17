@@ -73,7 +73,7 @@ class Controller:
             return
 
         if not self.model.figura_nova.incompleta():
-            self.model.figuras.append(self.model.figura_nova)
+            self.model.adicionar_figura(self.model.figura_nova)
 
         self.model.figura_nova = None
         self.model.desenhar(self.view.canvas)
@@ -84,7 +84,7 @@ class Controller:
 
         if not self.model.figura_nova.incompleta():
             self.model.figura_nova.completo = True
-            self.model.figuras.append(self.model.figura_nova)
+            self.model.adicionar_figura(self.model.figura_nova)
 
         self.model.figura_nova = None
         self.model.desenhar(self.view.canvas)

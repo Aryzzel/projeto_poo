@@ -54,7 +54,7 @@ class Circulo(Figura):
         Linha.alterarPontosFinais(self, x, y)
     
     def incompleta(self):
-        Linha.incompleta(self)
+        return Linha.incompleta(self)
 
 
 class Oval(Figura):
@@ -66,7 +66,7 @@ class Oval(Figura):
         Linha.alterarPontosFinais(self, x, y)
     
     def incompleta(self):
-        Linha.incompleta(self)
+        return Linha.incompleta(self)
 
 
 class Retangulo(Figura):
@@ -78,7 +78,7 @@ class Retangulo(Figura):
         Linha.alterarPontosFinais(self, x, y)
     
     def incompleta(self):
-        Linha.incompleta(self)
+        return Linha.incompleta(self)
 
 
 class Poligono(Figura):

@@ -7,6 +7,9 @@ class Model:
         canvas.delete('all')
         for item in self.figuras:
             item.desenhar(canvas)
+    
+    def adicionar_figura(self, figura):
+        self.figuras.append(figura)
 
     def obter_figuras(self):
         return self.figuras
