@@ -1,12 +1,12 @@
 from controller.controller import Controller
 from view.view import View
-from model.model import Model
+from model.desenho import Desenho
 
 
 def main():
     view = View()
-    model = Model()
-    controller = Controller(model, view)
+    desenho = Desenho()
+    controller = Controller(desenho, view)
     view.executar()
     
 

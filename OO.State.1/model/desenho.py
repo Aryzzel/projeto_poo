@@ -1,4 +1,4 @@
-class Model:
+class Desenho:
     def __init__(self):
         self.figuras = []
         self.figura_nova = None
