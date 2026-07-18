@@ -16,3 +16,6 @@ class Desenho:
 
     def obter_figura_nova(self):
         return self.figura_nova
+
+    def atualizar_tela(self):
+        self.desenho.desenhar(self.view.canvas)

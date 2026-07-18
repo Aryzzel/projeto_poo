@@ -1,5 +1,5 @@
 from tkinter import *
-from tkinter import ttk, colorchooser
+from tkinter import ttk, colorchooser, messagebox, filedialog
 
 
 class View:
@@ -64,6 +64,12 @@ class View:
         self.botao_sem_preenchimento = Button(self.frame, text='Transparente', command=self.remover_preenchimento)
         self.botao_sem_preenchimento.grid(column=3, row=1, sticky=W, **paddings)
 
+        self.botao_salvar = Button(self.frame, text="Salvar")
+        self.botao_salvar.grid(column=4, row=0, sticky=W, **paddings)
+
+        self.botao_abrir = Button(self.frame, text="Abrir")
+        self.botao_abrir.grid(column=4, row=1, sticky=W, **paddings)
+
         # Área de desenho
         self.canvas = Canvas(self.frame, bg='white', width=600, height=600)
         self.canvas.grid(column=0, row=2, columnspan=5, sticky=W, **paddings)
@@ -79,4 +85,16 @@ class View:
     def obter_cor_borda(self):
         return self.cor_borda_atual.get()
 
+    def escolher_arquivo_para_salvar(self):
+        return filedialog.asksaveasfilename(
+            defaultextension=".json",
+            filetypes=[("Arquivo de desenho", "*.json")]
+        )
 
+    def escolher_arquivo_para_abrir(self):
+        return filedialog.askopenfilename(
+            filetypes=[("Arquivo de desenho", "*.json")]
+        )
+
+    def mostrar_erro(self, titulo, mensagem):
+        messagebox.showerror(titulo, mensagem)

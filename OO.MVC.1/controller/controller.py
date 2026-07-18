@@ -88,6 +88,3 @@ class Controller:
 
         self.model.figura_nova = None
         self.model.desenhar(self.view.canvas)
-
-
-
