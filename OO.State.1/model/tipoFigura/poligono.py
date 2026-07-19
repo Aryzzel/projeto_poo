@@ -9,7 +9,7 @@ class Poligono(Figura):
 
     def adicionarPonto(self, novoPonto):
         self.pontos.append(novoPonto)
-    
+
     def alterarPontosFinais(self, x, y):
         self.coordenadas[1] =  (x, y)
 
@@ -28,3 +28,19 @@ class Poligono(Figura):
     def incompleta(self):
         # precisa de pelo menos 3 pontos pra formar um polígono de verdade
         return len(self.pontos) < 3
+
+    def to_dict(self):
+        dados = super().to_dict()
+        dados["pontos"] = self.pontos
+        dados["completo"] = self.completo
+        return dados
+
+    @classmethod
+    def from_dict(cls, dados):
+        return cls(
+            dados["coordenadas"],
+            dados["pontos"],
+            dados["cor_borda"],
+            dados["completo"],
+            dados["cor_preenchimento"],
+        )

@@ -13,3 +13,19 @@ class Figura(ABC):
     @abstractmethod
     def incompleta(self):
         pass
+
+    def to_dict(self):
+        """Converte a figura num dicionário pronto pra virar JSON.
+        Subclasses com dados extras (Polígono) sobrescrevem e complementam."""
+        return {
+            "tipo": type(self).__name__,
+            "coordenadas": self.coordenadas,
+            "cor_borda": self.corBorda,
+            "cor_preenchimento": self.corFill,
+        }
+
+    @classmethod
+    def from_dict(cls, dados):
+        """Reconstrói a figura a partir do dicionário lido do JSON.
+        Subclasses com construtor diferente (Polígono) sobrescrevem."""
+        return cls(dados["coordenadas"], dados["cor_borda"], dados["cor_preenchimento"])

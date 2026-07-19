@@ -1,16 +1,9 @@
-from controller.tipoFerramenta.ferramentalinha import  FerramentaLinha
-from controller.tipoFerramenta.ferramentarabisco import  FerramentaRabisco
-from controller.tipoFerramenta.ferramentacirculo import  FerramentaCirculo
-from controller.tipoFerramenta.ferramentaoval import  FerramentaOval
-from controller.tipoFerramenta.ferramentaretangulo import  FerramentaRetangulo
+from controller.tipoFerramenta.ferramentalinha import FerramentaLinha
+from controller.tipoFerramenta.ferramentarabisco import FerramentaRabisco
+from controller.tipoFerramenta.ferramentacirculo import FerramentaCirculo
+from controller.tipoFerramenta.ferramentaoval import FerramentaOval
+from controller.tipoFerramenta.ferramentaretangulo import FerramentaRetangulo
 from controller.tipoFerramenta.ferramentapoligono import FerramentaPoligono
-
-from model.tipoFigura.poligono import Poligono
-from model.tipoFigura.linha import Linha
-from model.tipoFigura.rabisco import Rabisco
-from model.tipoFigura.circulo import Circulo
-from model.tipoFigura.oval import Oval
-from model.tipoFigura.retangulo import Retangulo
 
 import json
 
@@ -20,7 +13,7 @@ class Controller:
         self.view = view
         self.classes = {'Linha': FerramentaLinha,
                         'Rabisco': FerramentaRabisco,
-                        'Círculo': FerramentaCirculo,
+                         'Círculo': FerramentaCirculo,
                          'Oval': FerramentaOval,
                          'Retângulo': FerramentaRetangulo,
                          'Polígono': FerramentaPoligono}
@@ -35,45 +28,35 @@ class Controller:
 
         self.view.botao_salvar.config(command=self.salvar)
         self.view.botao_abrir.config(command=self.abrir)
-        
 
-    
     def iniciar_figura(self, event):
         tipo = self.view.obter_tipo_figura()
-        x = event.x
-        y = event.y
         cor_borda = self.view.obter_cor_borda()
         cor_preenchimento = self.view.obter_cor_preenchimento()
 
-
-        if tipo == "Polígono":
-            if not isinstance(self.desenho.figura_nova, Poligono):
-                self.ferramenta = self.classes[tipo](self.desenho, self.view, event, cor_borda, cor_preenchimento)
-        else:
+        # cada ferramenta sabe dizer, por si mesma (polimorfismo, método
+        # finalizada()), se já terminou seu trabalho; não precisa mais
+        # checar aqui se o tipo é "Polígono"
+        if self.ferramenta is None or self.ferramenta.finalizada():
             self.ferramenta = self.classes[tipo](self.desenho, self.view)
-        
-        self.mouse_pressionado(event, cor_borda, cor_preenchimento)
-    
-    def mouse_pressionado(self, event, corBorda, corFill):
-        self.ferramenta.mouse_pressionado(event, corBorda, corFill)
+
+        self.ferramenta.mouse_pressionado(event, cor_borda, cor_preenchimento)
 
     def arraste_clicado(self, event):
         self.ferramenta.arraste_clicado(event)
-    
+
     def solto(self, event):
         self.ferramenta.solto()
 
     def arraste(self, event):
-        if isinstance(self.desenho.figura_nova, Poligono):
+        # não precisa mais checar isinstance(figura_nova, Poligono):
+        # as ferramentas que não usam isso simplesmente não fazem nada
+        if self.ferramenta is not None:
             self.ferramenta.arraste(event)
-        else:
-            return
-        
+
     def cliqueduplo(self, event):
-        if isinstance(self.desenho.figura_nova, Poligono):
+        if self.ferramenta is not None:
             self.ferramenta.cliqueduplo()
-        else:
-            return
 
     def salvar(self):
         caminho = self.view.escolher_arquivo_para_salvar()
@@ -81,14 +64,10 @@ class Controller:
         if not caminho:
             return
 
-        dados = [
-            self.converter_figura_para_dados(figura)
-            for figura in self.desenho.figuras
-        ]
-
+        # o controller só repassa o caminho do arquivo pro model; quem
+        # sabe montar e escrever os dados é o próprio Desenho
         try:
-            with open(caminho, "w", encoding="utf-8") as arquivo:
-                json.dump(dados, arquivo, ensure_ascii=False, indent=4)
+            self.desenho.salvar(caminho)
         except OSError as erro:
             self.view.mostrar_erro("Erro ao salvar", str(erro))
 
@@ -99,68 +78,11 @@ class Controller:
             return
 
         try:
-            with open(caminho, "r", encoding="utf-8") as arquivo:
-                dados = json.load(arquivo)
-
-            self.desenho.figuras = [
-                self.converter_dados_para_figura(dado)
-                for dado in dados
-            ]
-            self.desenho.figura_nova = None
+            self.desenho.abrir(caminho)
             self.ferramenta = None
             self.atualizar_tela()
-
         except (OSError, json.JSONDecodeError, KeyError, TypeError) as erro:
             self.view.mostrar_erro("Erro ao abrir", str(erro))
-
-    def converter_figura_para_dados(self, figura):
-        dados = {
-            "tipo": type(figura).__name__,
-            "coordenadas": figura.coordenadas,
-            "cor_borda": figura.corBorda,
-            "cor_preenchimento": figura.corFill
-        }
-
-        if isinstance(figura, Rabisco):
-            dados["pontos"] = figura.pontos
-
-        if isinstance(figura, Poligono):
-            dados["pontos"] = figura.pontos
-            dados["completo"] = figura.completo
-
-        return dados
-
-    def converter_dados_para_figura(self, dados):
-        tipo = dados["tipo"]
-        coordenadas = dados["coordenadas"]
-        cor_borda = dados["cor_borda"]
-        cor_preenchimento = dados["cor_preenchimento"]
-
-        if tipo == "Linha":
-            return Linha(coordenadas, cor_borda, cor_preenchimento)
-
-        if tipo == "Rabisco":
-            return Rabisco(dados["pontos"], cor_borda, cor_preenchimento)
-
-        if tipo == "Circulo":
-            return Circulo(coordenadas, cor_borda, cor_preenchimento)
-
-        if tipo == "Oval":
-            return Oval(coordenadas, cor_borda, cor_preenchimento)
-
-        if tipo == "Retangulo":
-            return Retangulo(coordenadas, cor_borda, cor_preenchimento)
-
-        if tipo == "Poligono":
-            return Poligono(
-                coordenadas,
-                dados["pontos"],
-                cor_borda,
-                dados["completo"],
-                cor_preenchimento
-            )
-
-        raise KeyError("Tipo de figura inválido")
 
     def atualizar_tela(self):
         self.desenho.desenhar(self.view.canvas)

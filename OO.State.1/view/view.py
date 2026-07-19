@@ -5,6 +5,21 @@ from tkinter import ttk, colorchooser, messagebox, filedialog
 class View:
     def __init__(self):
         self.root = Tk()
+
+        # todos os atributos que criar_interface() vai preencher precisam
+        # estar declarados aqui, mesmo que comecem vazios/None - é o
+        # __init__ quem deve deixar claro tudo o que o objeto possui
+        self.frame = None
+        self.tipo_figura_var = None
+        self.cor_borda_atual = None
+        self.botao_cor_borda = None
+        self.cor_preenchimento_atual = None
+        self.botao_cor_preenchimento = None
+        self.botao_sem_preenchimento = None
+        self.botao_salvar = None
+        self.botao_abrir = None
+        self.canvas = None
+
         self.criar_interface()
 
     def executar(self):
@@ -81,7 +96,7 @@ class View:
 
     def obter_cor_preenchimento(self):
         return self.cor_preenchimento_atual.get()
-    
+
     def obter_cor_borda(self):
         return self.cor_borda_atual.get()
 
